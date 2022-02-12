@@ -1,4 +1,4 @@
-require 'tempfile'
+require 'aws-sdk-route53'
 require_relative 'conf'
 
 module Hisui
@@ -8,23 +8,36 @@ module Hisui
       /^\w+$/ =~ app ? true : false
     end
 
-    def make_batch_json(conf, app)
+    def create_cname_for_app(conf, app)
+      it = Aws::Route53::Client.new
+      resp = it.change_resource_record_sets(make_change_batch(conf, app))
+    end
+
+    def make_change_batch(conf, app)
       raise "invalid appname [#{app}]" unless valid_appname?(app)
       cname = [app, conf['domain']].join('.')
       hostname = conf['hostname']
-<<EOS
-{
-  "Comment": "CREATE cname record ",
-  "Changes": [{
-  "Action": "CREATE",
-              "ResourceRecordSet": {
-                          "Name": "#{cname}",
-                          "Type": "CNAME",
-                          "TTL": 300,
-                        "ResourceRecords": [{ "Value": "#{hostname}"}]
-}}]
-}
-EOS
+      {
+        change_batch: {
+          changes: [
+            {
+              action: "CREATE", 
+              resource_record_set: {
+                name: cname, 
+                resource_records: [
+                  {
+                    value: hostname, 
+                  }, 
+                ], 
+                ttl: 300, 
+                type: "CNAME", 
+              }, 
+            }, 
+          ], 
+          comment: "Web server for #{cname}", 
+        }, 
+        hosted_zone_id: conf['hosted-zone-id'], 
+      }
     end
   end
 end
@@ -36,10 +49,6 @@ if __FILE__ == $0
 
   appname = ARGV.shift
 
-  file = Tempfile.open("cname") do |fp|
-    fp.write(Hisui::AWSRoute53::make_batch_json(conf, appname))
-    fp
-  end
-
-  system("aws route53 change-resource-record-sets --hosted-zone-id #{conf['hosted-zone-id']} --change-batch file://#{file.path}")
+  it = Hisui::AWSRoute53::create_cname_for_app(conf, appname)
+  pp it.to_h
 end
