@@ -1,7 +1,7 @@
 require_relative "conf"
 
 def make_systemd_service(appname)
-  script = Dir.pwd + '/main.rb'
+  script = Dir.pwd + '/run.rb'
 
   <<~EOS
   [Unit]
