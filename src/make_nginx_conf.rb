@@ -23,7 +23,9 @@ end
 if __FILE__ == $0
   conf = Hisui::Config::load
   appname = ARGV.shift || exit
+  port = ARGV.shift || exit
   fname = "#{appname}.conf"
-  File.write(fname, make_nginx_conf(conf, appname, 8001))
-  system("sudo cp #{fname} /etc/nginx/conf.d/")
+  File.write(fname, make_nginx_conf(conf, appname, port))
+  system("sudo mv #{fname} /etc/nginx/conf.d/")
+  system("sudo nginx -t")
 end
