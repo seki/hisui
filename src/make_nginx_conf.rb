@@ -1,0 +1,29 @@
+require_relative 'conf'
+
+def make_nginx_conf(conf, app, port)
+  server_name = [app, conf['domain']].join('.')
+  <<~EOS
+  server {
+    listen       80;
+    server_name  #{server_name};
+
+    location / {
+        root   /usr/share/nginx/html;
+        proxy_pass http://localhost:#{port};
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+  }
+  EOS
+end
+
+if __FILE__ == $0
+  conf = Hisui::Config::load
+  appname = ARGV.shift || exit
+  fname = "#{appname}.conf"
+  File.write(fname, make_nginx_conf(conf, appname, 8001))
+  system("sudo cp #{fname} /etc/nginx/conf.d/")
+end
