@@ -8,7 +8,7 @@ def make_systemd_service(appname)
   Description = #{appname} daemon
 
   [Service]
-  ExecStart = /usr/bin/ruby #{script}
+  ExecStart = /usr/local/bin/ruby #{script}
   Restart = always
   Type = simple
   User = #{ENV['USER']}
