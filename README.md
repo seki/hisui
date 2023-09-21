@@ -35,7 +35,7 @@ sudo certbot --nginx -d periodic.druby.work
 ## pgtips
 
 cd hisui/src
-ruby add_name.rb pgtips
+ruby add_cname.rb pgtips
 cd pgtips
 ruby ../hisui/src/make_systemd_service.rb pgtips 8003
 sudo systemctl enable app-pgtips
@@ -44,3 +44,17 @@ sudo systemctl status app-pgtips
 ruby ../hisui/src/make_nginx_conf.rb pgtips 8003
 sudo systemctl reload nginx
 sudo certbot --nginx -d pgtips.druby.work
+
+## not
+
+ruby ../hisui/src/add_cname.rb not
+ruby ../hisui/src/make_systemd_service.rb not 8005
+
+sudo /usr/local/bin/gem install webpush
+sudo cp app-not.service /etc/systemd/system/app-not.service 
+sudo systemctl enable app-not
+sudo systemctl start app-not
+sudo systemctl status app-not
+ruby ../hisui/src/make_nginx_conf.rb not 8005
+sudo systemctl reload nginx
+sudo certbot --nginx -d not.druby.work

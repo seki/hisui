@@ -7,6 +7,7 @@ def make_nginx_conf(conf, app, port)
     listen       80;
     server_name  #{server_name};
 
+    proxy_http_version 1.1;
     location / {
         root   /usr/share/nginx/html;
         proxy_pass http://localhost:#{port};
